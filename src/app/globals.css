@@ -126,6 +126,85 @@ body {
   }
 }
 
+/* Infinite marquee: two tracks, translate one full track width. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* Slow aurora drift for the hero ambiance (tasteful, single-hue). */
+@keyframes aurora {
+  0% {
+    transform: translate3d(-8%, -4%, 0) scale(1.1);
+  }
+  50% {
+    transform: translate3d(8%, 6%, 0) scale(1.25);
+  }
+  100% {
+    transform: translate3d(-8%, -4%, 0) scale(1.1);
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+ * Gradient hairline border via mask compositing — a "unique border" that a
+ * single border-color cannot produce. Apply .edge to any element with a radius.
+ */
+.edge {
+  position: relative;
+}
+.edge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(140deg, rgba(216, 97, 58, 0.55), rgba(38, 38, 42, 0.2) 40%, rgba(237, 233, 225, 0.14));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Corner brackets — an editorial framing device. */
+.brackets::before,
+.brackets::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: theme("colors.ember.DEFAULT");
+  pointer-events: none;
+}
+.brackets::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+.brackets::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="animation: marquee"],
+  [style*="animation: aurora"] {
+    animation: none !important;
+  }
+}
+
 /* Respect users who ask for less motion — required, not optional */
 @media (prefers-reduced-motion: reduce) {
   *,

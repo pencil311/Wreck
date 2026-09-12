@@ -21,11 +21,17 @@ function base(size = 24): SVGProps<SVGSVGElement> {
   };
 }
 
-/** Barbell — training / home. A bar with square plates. */
+/** Dumbbell — training / home. Reads as a real dumbbell: outer collars,
+ *  tall inner plates, and a knurled handle between them. */
 export function IconBarbell({ size, ...p }: IconProps) {
   return (
     <svg {...base(size)} {...p}>
-      <path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12" />
+      {/* left collar + plate */}
+      <path d="M4 8.5v7M7 5.5v13" />
+      {/* handle */}
+      <path d="M7 12h10" />
+      {/* right plate + collar */}
+      <path d="M17 5.5v13M20 8.5v7" />
     </svg>
   );
 }
@@ -190,6 +196,55 @@ export function IconBook({ size, ...p }: IconProps) {
   return (
     <svg {...base(size)} {...p}>
       <path d="M5 4h9a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2zM16 6h3v14H7" />
+    </svg>
+  );
+}
+
+/**
+ * DumbbellMark — a full-colour, dimensional dumbbell for hero / feature use
+ * (as opposed to the monochrome line icon above). Metallic steel plates with
+ * ember collars, tilted for energy. Self-contained gradients.
+ */
+export function DumbbellMark({
+  size = 48,
+  className,
+  ...p
+}: SVGProps<SVGSVGElement> & { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      fill="none"
+      className={className}
+      aria-hidden
+      {...p}
+    >
+      <defs>
+        <linearGradient id="wreckSteel" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#DFE1E6" />
+          <stop offset="0.5" stopColor="#9DA1A8" />
+          <stop offset="1" stopColor="#5C5F66" />
+        </linearGradient>
+        <linearGradient id="wreckEmber" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#F0906B" />
+          <stop offset="0.55" stopColor="#D8613A" />
+          <stop offset="1" stopColor="#A9421F" />
+        </linearGradient>
+      </defs>
+      <g transform="rotate(-20 24 24)">
+        {/* handle */}
+        <rect x="14" y="21.5" width="20" height="5" rx="2.5" fill="url(#wreckSteel)" />
+        {/* left plates */}
+        <rect x="9" y="14" width="6.5" height="20" rx="2.2" fill="url(#wreckSteel)" />
+        <rect x="4" y="17.5" width="5" height="13" rx="2" fill="url(#wreckEmber)" />
+        {/* right plates */}
+        <rect x="32.5" y="14" width="6.5" height="20" rx="2.2" fill="url(#wreckSteel)" />
+        <rect x="39" y="17.5" width="5" height="13" rx="2" fill="url(#wreckEmber)" />
+        {/* top highlight for sheen */}
+        <rect x="9" y="14" width="6.5" height="3" rx="1.6" fill="#FFFFFF" opacity="0.28" />
+        <rect x="32.5" y="14" width="6.5" height="3" rx="1.6" fill="#FFFFFF" opacity="0.28" />
+      </g>
     </svg>
   );
 }

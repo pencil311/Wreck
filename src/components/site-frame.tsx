@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Wordmark } from "./wordmark";
 import { Button } from "./ui/primitives";
+import { Magnetic } from "./motion/magnetic";
 
 /** Public site header. Restrained, hairline-separated, no glass. */
 export function SiteHeader() {
@@ -25,9 +26,11 @@ export function SiteHeader() {
               Sign in
             </Button>
           </Link>
-          <Link href="/register">
-            <Button size="sm">Build my WRECK</Button>
-          </Link>
+          <Magnetic strength={0.3}>
+            <Link href="/register">
+              <Button size="sm">Build my WRECK</Button>
+            </Link>
+          </Magnetic>
         </div>
       </div>
     </header>

@@ -1,28 +1,36 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import NumberFlow from "@number-flow/react";
 import { MODE_LIST, MODE_META } from "@/domain/modes";
 import type { Mode } from "@/domain/types";
-import { Chip, ProgressBar, Skeleton } from "@/components/ui/primitives";
+import { ProgressBar } from "@/components/ui/primitives";
+import { BarSeries } from "@/components/charts/wreck-charts";
 
 /**
  * Live personalization demo. Selecting an identity morphs a real sample of the
- * WRECK interface — navigation labels, the hero metric, today's action and the
- * emphasis all change from the same MODE_META the app itself uses. A short
- * skeleton state on switch demonstrates the product's real loading behaviour.
+ * WRECK interface — navigation, hero metric, today's action, emphasis and a
+ * mini training-volume chart all change from the same MODE_META the app uses.
+ * Transitions are handled by motion; a numeric hero metric counts on change.
  */
 
-const SAMPLE: Record<
-  Mode,
-  { action: string; sub: string; stats: { label: string; value: string; fill: number }[] }
-> = {
+interface Sample {
+  action: string;
+  sub: string;
+  stats: { label: string; value: string; fill: number }[];
+  series: number[];
+}
+
+const SAMPLE: Record<Mode, Sample> = {
   beginner: {
     action: "Full Body A — 25 min",
     sub: "Five movements, gentle progression. You have got this.",
     stats: [
       { label: "Confidence", value: "Building", fill: 55 },
       { label: "This week", value: "2 of 3", fill: 66 }
-    ]
+    ],
+    series: [1, 1, 0, 1, 1, 0, 1]
   },
   bodybuilding: {
     action: "Push — chest, shoulders, triceps",
@@ -30,7 +38,8 @@ const SAMPLE: Record<
     stats: [
       { label: "Protein", value: "142 / 178 g", fill: 80 },
       { label: "Weekly volume", value: "On track", fill: 72 }
-    ]
+    ],
+    series: [12, 10, 14, 9, 13, 11, 15]
   },
   strength: {
     action: "Squat Day — 5 × 5",
@@ -38,7 +47,8 @@ const SAMPLE: Record<
     stats: [
       { label: "Est. 1RM squat", value: "138 kg", fill: 68 },
       { label: "Main lift trend", value: "Rising", fill: 74 }
-    ]
+    ],
+    series: [120, 122, 125, 124, 128, 130, 134]
   },
   running: {
     action: "Easy Run — 8 km",
@@ -46,7 +56,8 @@ const SAMPLE: Record<
     stats: [
       { label: "Weekly mileage", value: "34 / 40 km", fill: 85 },
       { label: "Fueling", value: "Carb focus", fill: 60 }
-    ]
+    ],
+    series: [6, 8, 5, 10, 4, 12, 6]
   },
   sports: {
     action: "Lower Power + conditioning",
@@ -54,7 +65,8 @@ const SAMPLE: Record<
     stats: [
       { label: "Readiness", value: "78 / 100", fill: 78 },
       { label: "Season phase", value: "In-season", fill: 50 }
-    ]
+    ],
+    series: [7, 8, 6, 9, 8, 7, 9]
   },
   calisthenics: {
     action: "Pull Skill — pull-up 3 × 5",
@@ -62,7 +74,8 @@ const SAMPLE: Record<
     stats: [
       { label: "Pull-up", value: "3 × 5", fill: 62 },
       { label: "Hollow hold", value: "35 s", fill: 58 }
-    ]
+    ],
+    series: [5, 6, 6, 7, 6, 8, 8]
   },
   hybrid: {
     action: "Lift + 5 km easy",
@@ -70,7 +83,8 @@ const SAMPLE: Record<
     stats: [
       { label: "Strength", value: "Maintained", fill: 66 },
       { label: "Endurance", value: "Growing", fill: 70 }
-    ]
+    ],
+    series: [9, 6, 10, 7, 9, 8, 11]
   },
   general: {
     action: "Full Body B — 35 min",
@@ -78,42 +92,50 @@ const SAMPLE: Record<
     stats: [
       { label: "This week", value: "3 of 4", fill: 75 },
       { label: "Energy", value: "Good", fill: 72 }
-    ]
+    ],
+    series: [1, 1, 1, 0, 1, 1, 0]
   }
 };
 
+const DAYS = ["M", "T", "W", "T", "F", "S", "S"];
+
 export function ModeDemo() {
   const [mode, setMode] = useState<Mode>("bodybuilding");
-  const [pending, startTransition] = useTransition();
+  const reduce = useReducedMotion();
   const meta = MODE_META[mode];
   const sample = SAMPLE[mode];
-
-  function choose(next: Mode) {
-    if (next === mode) return;
-    // Show a genuine loading state, then swap — the app reconfigures, it does not just restyle.
-    startTransition(() => {
-      setMode(next);
-    });
-  }
+  const metricNum = Number(meta.heroMetric.sample);
+  const numeric = !Number.isNaN(metricNum);
 
   return (
     <div>
       <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
         {MODE_LIST.map((m) => (
-          <Chip key={m.key} active={m.key === mode} onClick={() => choose(m.key)} className="shrink-0">
+          <button
+            key={m.key}
+            onClick={() => setMode(m.key)}
+            className={
+              "relative shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-bold tracking-wide transition-colors duration-150 " +
+              (m.key === mode ? "border-ember/60 text-ember-hi" : "border-ink-line text-bone-dim hover:text-bone hover:border-bone/30")
+            }
+          >
+            {m.key === mode && !reduce && (
+              <motion.span
+                layoutId="mode-pill"
+                className="absolute inset-0 -z-10 rounded-full bg-ember/10"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
             {m.label}
-          </Chip>
+          </button>
         ))}
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-sm border border-ink-line bg-ink-raise">
+      <div className="edge mt-6 overflow-hidden rounded-md bg-ink-raise">
         {/* App chrome: mode-specific navigation labels */}
         <div className="flex items-center gap-4 overflow-x-auto border-b border-ink-line px-5 py-3 no-scrollbar">
           {meta.nav.map((n, i) => (
-            <span
-              key={n.key}
-              className={i === 0 ? "text-xs font-bold text-bone" : "text-xs text-bone-faint"}
-            >
+            <span key={n.key} className={i === 0 ? "text-xs font-bold text-bone" : "text-xs text-bone-faint"}>
               {n.label}
             </span>
           ))}
@@ -121,18 +143,26 @@ export function ModeDemo() {
 
         <div className="p-6 md:p-8">
           <p className="eyebrow">Today · {meta.label}</p>
-
-          {pending ? (
-            <DemoSkeleton />
-          ) : (
-            <div className="animate-fade-in">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mode}
+              initial={reduce ? false : { opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? undefined : { opacity: 0, y: -10 }}
+              transition={{ duration: 0.4, ease: [0.22, 0.61, 0.36, 1] }}
+            >
               <div className="mt-4 flex items-end justify-between gap-4">
                 <div>
                   <div className="flex items-baseline gap-2">
-                    <span className="font-display text-metric text-bone">{meta.heroMetric.sample}</span>
+                    <span className="font-display text-metric text-bone">
+                      {numeric ? <NumberFlow value={metricNum} /> : meta.heroMetric.sample}
+                    </span>
                     <span className="text-sm text-bone-dim">{meta.heroMetric.unit}</span>
                   </div>
                   <p className="eyebrow mt-1">{meta.heroMetric.label}</p>
+                </div>
+                <div className="hidden w-40 sm:block">
+                  <BarSeries data={sample.series} labels={DAYS} height={64} />
                 </div>
               </div>
 
@@ -153,31 +183,13 @@ export function ModeDemo() {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         <div className="border-t border-ink-line px-6 py-3">
           <p className="text-xs text-bone-faint">{meta.accentNote}</p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function DemoSkeleton() {
-  return (
-    <div className="mt-4">
-      <Skeleton className="h-12 w-40" />
-      <Skeleton className="mt-3 h-3 w-24" />
-      <div className="mt-6 border-t border-ink-line pt-5">
-        <Skeleton className="h-3 w-28" />
-        <Skeleton className="mt-3 h-7 w-64 max-w-full" />
-        <Skeleton className="mt-3 h-3 w-72 max-w-full" />
-      </div>
-      <div className="mt-6 grid gap-5 sm:grid-cols-2">
-        <Skeleton className="h-12" />
-        <Skeleton className="h-12" />
       </div>
     </div>
   );

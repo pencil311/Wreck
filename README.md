@@ -118,6 +118,22 @@ layout additionally gates on a completed profile.
    server-only and never reaches the client; Row Level Security denies direct
    client access to the tables.
 
+## Landing page motion & charts
+
+The marketing landing page is intentionally heavier on motion than the app. It
+uses **motion** (Framer Motion 12) for cursor-reactive interactions —
+magnetic buttons, 3D tilt cards, a headline whose text lights up under the
+cursor (no blob cursor-follower), scroll reveals and a marquee — and an
+animated chart set built on **d3-shape + motion** with **@number-flow/react**
+counters (`src/components/charts`, `src/components/motion`). All motion honours
+`prefers-reduced-motion`.
+
+> On `bklit-ui`: its shadcn registry host is not reachable from this
+> environment, and its charts target React 19 + Tailwind 4 + @visx/@base-ui,
+> while WRECK is React 18 + Tailwind 3. The chart set here reproduces bklit's
+> aesthetic using its own React-18-compatible primitives (d3-shape + motion +
+> number-flow) tuned to the WRECK design language.
+
 ## Design intent
 
 The interface is deliberately built to avoid the "AI-generated" look: a warm
