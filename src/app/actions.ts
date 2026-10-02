@@ -86,6 +86,7 @@ export async function registerAction(input: {
     if (e instanceof Error && e.message === "EMAIL_TAKEN") {
       return { ok: false, error: "An account with that email already exists.", fields: { email: "Already registered." } };
     }
+    console.error("registerAction failed:", e); // surfaces in Vercel runtime logs
     return { ok: false, error: "Could not create your account. Please try again." };
   }
 }
