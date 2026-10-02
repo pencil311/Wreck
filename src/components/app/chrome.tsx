@@ -58,6 +58,11 @@ export function AppChrome({
   const isActive = (href: string) =>
     href === "/app" ? pathname === "/app" : pathname.startsWith(href);
 
+  // The mobile bottom bar only fits 5 items; if Coach falls outside that window
+  // (or a mode omits it), surface it in the top bar so it is always reachable.
+  const coach = nav.find((n) => n.key === "coach");
+  const coachInBottomBar = nav.slice(0, 5).some((n) => n.key === "coach");
+
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[248px_1fr]">
       {/* Desktop rail */}
@@ -112,9 +117,20 @@ export function AppChrome({
       {/* Mobile top bar */}
       <div className="flex items-center justify-between border-b border-ink-line px-5 py-4 md:hidden">
         <Wordmark size="sm" />
-        <Link href="/app/settings" className="text-bone-dim" aria-label="Settings">
-          <IconGear size={22} />
-        </Link>
+        <div className="flex items-center gap-4">
+          {coach && !coachInBottomBar && (
+            <Link
+              href={coach.href}
+              className={isActive(coach.href) ? "text-ember" : "text-bone-dim"}
+              aria-label="Coach"
+            >
+              <IconSpeech size={22} />
+            </Link>
+          )}
+          <Link href="/app/settings" className="text-bone-dim" aria-label="Settings">
+            <IconGear size={22} />
+          </Link>
+        </div>
       </div>
 
       {/* Main */}

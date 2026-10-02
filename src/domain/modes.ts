@@ -34,7 +34,8 @@ export const MODE_META: Record<Mode, ModeMeta> = {
       ["today", "Today", "/app/training"],
       ["learn", "Learn", "/app/learn"],
       ["eat", "Eat", "/app/nutrition"],
-      ["progress", "Progress", "/app/progress"]
+      ["progress", "Progress", "/app/progress"],
+      ["coach", "Coach", "/app/coach"]
     ]),
     heroMetric: { label: "Sessions this week", sample: "2", unit: "of 3" },
     lexicon: { session: "session", plan: "starter plan" },
