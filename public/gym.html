@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en" class="anim play">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>WRECK — Your fitness, built around you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Prata&family=Hanken+Grotesk:wght@400;500;600;700&family=Poppins:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  /* fonts */
+  --font-serif:'Prata',Georgia,serif;
+  --font-body:'Hanken Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-logo:'Poppins',sans-serif;
+
+  /* colour */
+  --ink:#ffffff;
+  --cyan:#79dce8;
+  --cyan-logo:#5fd0e1;
+  --rule:rgba(255,255,255,.23);
+  --btn-ink:#071227;
+
+  /* reference design coordinate system */
+  --dw:1353;
+  --dh:1163;
+  --gutter:25;
+
+  /* responsive unit: scale to the viewport HEIGHT so the hero always fills
+     the window vertically; content is positioned full-width so it fills across. */
+  --u:calc(100dvh / var(--dh));
+  --dh-px:calc(var(--dh) * var(--u));
+  --vshift:calc((100dvh - var(--dh-px)) / 2);
+
+  /* easing */
+  --e-expo:cubic-bezier(.16,1,.3,1);
+  --e-quint:cubic-bezier(.22,1,.36,1);
+  --e-slow:cubic-bezier(.4,0,.2,1);
+}
+
+html,body{height:100%}
+body{
+  font-family:var(--font-body);
+  color:var(--ink);
+  background:#070809;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* ---------------------------------------------------------------- stage */
+.stage{position:fixed;inset:0;overflow:hidden}
+
+.gym-bg{
+  position:absolute;inset:0;
+  background-image:url("/gym-bg.png");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  filter:brightness(.8);
+  transform:scale(1.015);
+  transform-origin:center;
+  z-index:0;
+}
+.anim .gym-bg{opacity:0}
+.play .gym-bg{animation:bgIn 1.2s var(--e-slow) .05s forwards}
+@keyframes bgIn{to{opacity:1}}
+
+.gym-shade{
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(4,6,9,.58),rgba(4,6,9,.12) 46%,transparent 66%),
+             linear-gradient(180deg,rgba(4,6,9,.18),rgba(4,6,9,.32)),
+             radial-gradient(120% 90% at 50% 0%,transparent 55%,rgba(4,6,9,.35));
+}
+
+.ui{position:absolute;inset:0;z-index:5}
+
+/* ---------------------------------------------------------------- navbar */
+.navbar{position:absolute;top:0;left:0;right:0;z-index:20}
+.navrow{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:calc(34*var(--u)) calc(var(--gutter)*var(--u));
+  gap:calc(20*var(--u));
+}
+.logo{
+  font-family:var(--font-logo);font-weight:600;
+  font-size:calc(30*var(--u));letter-spacing:.14em;color:var(--ink);
+  text-decoration:none;display:inline-flex;align-items:center;line-height:1;
+}
+.logo b{color:var(--cyan-logo);font-weight:600}
+
+.links{display:flex;align-items:center;gap:calc(38*var(--u))}
+.links a{
+  font-size:calc(16.5*var(--u));font-weight:500;letter-spacing:.02em;
+  color:var(--ink);text-decoration:none;position:relative;opacity:.9;
+  padding:calc(6*var(--u)) 0;transition:opacity .3s var(--e-slow);
+}
+.links a::after{
+  content:"";position:absolute;left:0;right:100%;bottom:calc(-2*var(--u));
+  height:2px;background:var(--cyan);transition:right .4s var(--e-quint);
+}
+.links a:hover{opacity:1}
+.links a:hover::after,.links a[aria-current="page"]::after{right:0}
+.links a.enroll{
+  font-weight:600;color:var(--btn-ink);background:var(--cyan);
+  padding:calc(11*var(--u)) calc(22*var(--u));border-radius:999px;
+  letter-spacing:.04em;opacity:1;
+  box-shadow:0 calc(6*var(--u)) calc(20*var(--u)) rgba(121,220,232,.28);
+  transition:transform .35s var(--e-quint),box-shadow .35s var(--e-quint);
+}
+.links a.enroll::after{display:none}
+.links a.enroll:hover{transform:translateY(-2px);box-shadow:0 calc(10*var(--u)) calc(26*var(--u)) rgba(121,220,232,.4)}
+
+.burger{
+  display:none;width:calc(46*var(--u));height:calc(46*var(--u));
+  background:rgba(255,255,255,.08);border:1px solid var(--rule);
+  border-radius:12px;cursor:pointer;padding:0;place-items:center;
+  backdrop-filter:blur(6px);
+}
+.burger span{display:block;width:calc(22*var(--u));height:2px;background:var(--ink);margin:calc(4*var(--u)) auto;transition:transform .35s var(--e-quint),opacity .2s}
+.burger[aria-expanded="true"] span:nth-child(1){transform:translateY(calc(6*var(--u))) rotate(45deg)}
+.burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+.burger[aria-expanded="true"] span:nth-child(3){transform:translateY(calc(-6*var(--u))) rotate(-45deg)}
+
+/* ---------------------------------------------------------------- copy */
+.copy{position:absolute;left:0;right:0;top:var(--vshift);height:var(--dh-px)}
+.col{position:absolute;left:0;right:0;text-align:center;z-index:12;max-width:none}
+
+.eyebrow{top:calc(130*var(--u))}
+.eyebrow .ent-line{
+  font-size:calc(19*var(--u));font-weight:600;letter-spacing:.5em;
+  color:var(--cyan);text-transform:uppercase;
+}
+.title{top:calc(195*var(--u));max-width:none}
+.title .ent-mask{display:inline-block;white-space:nowrap}
+.title .ent-line{
+  font-family:var(--font-serif);font-weight:400;
+  font-size:calc(132*var(--u));line-height:.96;letter-spacing:.005em;
+  color:var(--ink);text-transform:uppercase;
+  text-shadow:0 calc(8*var(--u)) calc(40*var(--u)) rgba(0,0,0,.45);
+}
+.rule{top:calc(330*var(--u));height:2px;overflow:hidden}
+.rule span{display:block;width:calc(120*var(--u));height:2px;background:var(--cyan);transform-origin:center;margin:0 auto}
+.anim .rule span{transform:scaleX(0)}
+.play .rule span{animation:draw .9s var(--e-quint) 1.15s forwards}
+@keyframes draw{to{transform:scaleX(1)}}
+
+.lede{top:calc(358*var(--u))}
+.lede p{
+  font-size:calc(20.5*var(--u));line-height:1.6;font-weight:400;
+  color:rgba(255,255,255,.9);max-width:calc(470*var(--u));margin:0 auto;
+}
+
+/* ---------------------------------------------------------------- cta row */
+.cta{top:calc(560*var(--u));left:0;right:0;max-width:none;z-index:4;display:flex;justify-content:center}
+.primary-cta{
+  position:absolute;left:auto;top:0;z-index:7;
+  display:inline-flex;align-items:center;justify-content:center;gap:calc(10*var(--u));
+  font-family:var(--font-body);font-weight:600;letter-spacing:.08em;
+  font-size:calc(16*var(--u));color:var(--btn-ink);text-decoration:none;
+  padding:calc(17*var(--u)) calc(38*var(--u));border-radius:999px;
+  background:linear-gradient(180deg,#a9ecf5 0%,var(--cyan) 46%,#57c6d6 100%);
+  box-shadow:
+    0 calc(2*var(--u)) 0 rgba(255,255,255,.55) inset,
+    0 calc(-3*var(--u)) calc(8*var(--u)) rgba(0,40,60,.25) inset,
+    0 calc(14*var(--u)) calc(34*var(--u)) rgba(87,198,214,.35);
+  border:1px solid rgba(255,255,255,.4);
+  transition:transform .4s var(--e-quint),box-shadow .4s var(--e-quint),filter .3s;
+  text-transform:uppercase;position:relative;overflow:hidden;
+}
+.primary-cta::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.5) 50%,transparent 70%);
+  transform:translateX(-120%);transition:transform .7s var(--e-quint);
+}
+.primary-cta:hover{transform:translateY(-2px);box-shadow:0 calc(2*var(--u)) 0 rgba(255,255,255,.6) inset,0 calc(18*var(--u)) calc(40*var(--u)) rgba(87,198,214,.5)}
+.primary-cta:hover::before{transform:translateX(120%)}
+.primary-cta:active{transform:translateY(0) scale(.99)}
+
+/* ---------------------------------------------------------------- equipment selectors */
+.equipment{
+  position:absolute;top:calc(-235*var(--u));z-index:2;
+  width:calc(500*var(--u));height:calc(500*var(--u));
+  background:none;border:0;padding:0;cursor:pointer;
+  transform:scale(1);
+  transition:transform .45s var(--e-quint);
+  filter:drop-shadow(0 calc(24*var(--u)) calc(46*var(--u)) rgba(0,0,0,.5));
+}
+.equipment-l{left:calc(-300*var(--u))}
+.equipment-r{right:calc(-300*var(--u))}
+.equipment-c{left:auto;right:calc(40*var(--u));top:calc(-360*var(--u));width:calc(680*var(--u));height:calc(680*var(--u));z-index:2;cursor:pointer}
+.equipment:hover{transform:scale(1.045)}
+.equipment:active{transform:scale(.99)}
+
+.eq{
+  position:absolute;inset:0;margin:auto;
+  width:100%;height:100%;object-fit:contain;
+  opacity:0;visibility:hidden;pointer-events:none;
+  transform:scale(calc(var(--equipment-scale,1) * .96));
+  transition:opacity .38s var(--e-slow),transform .5s var(--e-quint);
+}
+.eq.is-shown{opacity:1;visibility:visible;transform:scale(var(--equipment-scale,1))}
+
+.eq[data-equipment="barbell"]{--equipment-scale:1.10}
+.eq[data-equipment="treadmill"]{--equipment-scale:.92}
+.eq[data-equipment="punching-bag"]{--equipment-scale:.88}
+.eq[data-equipment="spin-bike"]{--equipment-scale:.94}
+
+/* ---------------------------------------------------------------- equipment orbit (centred) */
+.equip-stage{position:absolute;inset:0;z-index:2;pointer-events:none;--R:calc(600*var(--u))}
+.equip{
+  position:absolute;left:50%;top:calc(1200*var(--u));
+  width:calc(760*var(--u));height:calc(520*var(--u));object-fit:contain;
+  transform:translate(-50%,-50%);opacity:0;pointer-events:none;
+  filter:drop-shadow(0 calc(30*var(--u)) calc(60*var(--u)) rgba(0,0,0,.55));
+  will-change:transform,opacity;
+}
+.ready .equip{transition:transform .95s var(--e-quint),opacity .6s var(--e-slow)}
+.equip[data-d="1"]:hover,.equip[data-d="3"]:hover{opacity:1 !important}
+.eq-label{
+  position:absolute;background:none;border:0;padding:0;cursor:pointer;
+  font-family:var(--font-serif);font-size:calc(26*var(--u));letter-spacing:.16em;
+  color:var(--ink);text-transform:uppercase;pointer-events:auto;z-index:4;
+  transition:color .3s var(--e-slow),opacity .4s var(--e-slow);
+}
+.eq-label:hover{color:var(--cyan)}
+.el-left{left:calc(70*var(--u));top:calc(940*var(--u))}
+.el-right{right:calc(70*var(--u));top:calc(940*var(--u))}
+.copy.switching .eq-label{opacity:0}
+.anim .equip-stage{opacity:0;transform:translateY(calc(30*var(--u)))}
+.play .equip-stage{animation:riseFade .9s var(--e-expo) 1.2s forwards}
+
+/* ---------------------------------------------------------------- selector labels */
+.selector-label{
+  position:absolute;z-index:6;display:inline-flex;align-items:center;
+  gap:calc(12*var(--u));top:calc(6*var(--u));
+  cursor:pointer;user-select:none;
+}
+.label-l{left:calc(300*var(--u))}
+.label-r{right:calc(250*var(--u))}
+.selector-label .label-name{
+  font-family:var(--font-serif);font-size:calc(26*var(--u));
+  letter-spacing:.06em;color:var(--ink);text-transform:uppercase;
+  transition:color .3s var(--e-slow);
+}
+.selector-label .nav-arrow{
+  font-size:calc(22*var(--u));color:var(--cyan);line-height:1;
+  transition:transform .4s var(--e-quint);display:inline-block;
+}
+.selector-label:hover .label-name{color:var(--cyan)}
+.label-l:hover .nav-arrow{transform:translateX(calc(-6*var(--u)))}
+.label-r:hover .nav-arrow{transform:translateX(calc(6*var(--u)))}
+
+/* ---------------------------------------------------------------- scroll cue */
+.scroll{
+  position:absolute;left:50%;bottom:calc(30*var(--u));transform:translateX(-50%);
+  width:calc(48*var(--u));height:calc(48*var(--u));z-index:15;
+  background:rgba(255,255,255,.07);border:1px solid var(--rule);border-radius:999px;
+  color:var(--ink);cursor:pointer;display:grid;place-items:center;
+  backdrop-filter:blur(6px);transition:transform .4s var(--e-quint),background .3s;
+}
+.scroll svg{width:calc(20*var(--u));height:calc(20*var(--u))}
+.scroll:hover{transform:translateX(-50%) translateY(4px);background:rgba(255,255,255,.13)}
+.scroll .bob{animation:bob 1.8s var(--e-slow) infinite}
+@keyframes bob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
+
+/* ---------------------------------------------------------------- content switch */
+.copy.switching .eyebrow .ent-line,
+.copy.switching .title .ent-line,
+.copy.switching .lede p,
+.copy.switching .primary-cta{opacity:0;transform:translateY(calc(-8*var(--u)))}
+.eyebrow .ent-line,.title .ent-line,.lede p,.primary-cta{
+  transition:opacity .34s var(--e-slow),transform .38s var(--e-quint);
+}
+
+/* ---------------------------------------------------------------- entrance animation */
+.ent-mask{display:block;overflow:hidden;padding-bottom:.08em}
+.ent-line{display:block;transform:none}
+.anim .ent-line{transform:translateY(110%)}
+.play .eyebrow .ent-line{animation:rise .9s var(--e-expo) .95s forwards}
+.play .title .ent-line{animation:rise 1.05s var(--e-expo) 1.05s forwards}
+
+@keyframes rise{to{transform:translateY(0)}}
+
+/* initial hidden state for rise-fade elements — gated on .anim so removing
+   the entrance classes leaves every element in its final visible state */
+.anim .logo,
+.anim .links a,
+.anim .lede p,
+.anim .primary-cta,
+.anim .selector-label,
+.anim .equipment,
+.anim .scroll{opacity:0;transform:translateY(calc(16*var(--u)))}
+.play .logo{animation:riseFade .8s var(--e-expo) .5s forwards}
+.play .links a{animation:riseFade .7s var(--e-expo) calc(.65s + var(--i,0)*.08s) forwards}
+.play .lede p{animation:riseFade .8s var(--e-expo) 1.35s forwards}
+.play .selector-label{animation:riseFade .8s var(--e-expo) 1.55s forwards}
+.play .equipment{animation:riseFade .9s var(--e-expo) 1.5s forwards}
+.play .primary-cta{animation:settle .8s var(--e-quint) 1.7s forwards}
+.play .scroll{animation:riseFade .7s var(--e-expo) 1.95s forwards}
+@keyframes riseFade{to{opacity:1;transform:translateY(0)}}
+@keyframes settle{0%{opacity:0;transform:translateY(calc(22*var(--u))) scale(.96)}60%{opacity:1}100%{opacity:1;transform:translateY(0) scale(1)}}
+
+/* residual clean-up: once entrance is done (.anim removed) nothing forces transforms */
+
+/* ================================================================ RESPONSIVE */
+
+/* A) NAV COLLAPSE */
+@media (max-width:1030px),(max-height:620px){
+  .links{
+    position:fixed;top:0;right:0;height:100dvh;width:min(78vw,340px);
+    flex-direction:column;align-items:flex-start;justify-content:center;
+    gap:26px;padding:0 34px;background:rgba(8,12,16,.86);
+    backdrop-filter:blur(18px);border-left:1px solid var(--rule);
+    transform:translateX(105%);transition:transform .5s var(--e-quint);z-index:40;
+  }
+  .links.open{transform:translateX(0)}
+  .links a{font-size:22px}
+  .links a::after{display:none}
+  .links a.enroll{padding:12px 26px}
+  .burger{display:grid;z-index:41}
+  .play .links a{animation:none;opacity:1;transform:none}
+}
+
+/* B) TABLET */
+@media (min-width:580px) and (max-width:1030px) and (min-height:621px){
+  :root{--u:calc(100dvh / var(--dh))}
+  .lede p{max-width:calc(520*var(--u))}
+  .equipment{width:calc(440*var(--u));height:calc(440*var(--u))}
+  .equipment-l{left:calc(-210*var(--u))}
+  .equipment-r{right:calc(-200*var(--u))}
+  .equipment-c{right:calc(6*var(--u));width:calc(560*var(--u));height:calc(560*var(--u));top:calc(-320*var(--u))}
+  .label-l{left:calc(250*var(--u))}
+  .label-r{right:calc(250*var(--u))}
+}
+
+/* C) PHONE — flowing vertical composition */
+@media (max-width:579px),(max-height:620px){
+  :root{--u:calc(100vw / 430)}
+  .copy{position:absolute;top:0;height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:0 24px}
+  .col{position:static;left:auto;max-width:none}
+  .eyebrow{margin-top:0}
+  .eyebrow .ent-line{font-size:13px;letter-spacing:.42em}
+  .title{margin-top:10px;max-width:100%}
+  .title .ent-mask{max-width:100%}
+  .title .ent-line{font-size:clamp(34px,12vw,68px)}
+  .rule{margin-top:20px}
+  .lede{margin-top:16px}
+  .lede p{font-size:16px;max-width:36ch}
+  .cta{margin-top:30px;position:static;z-index:6}
+  .primary-cta{position:static;left:auto;font-size:14px;padding:15px 30px}
+  .equipment{width:44vw;height:44vw;top:auto;bottom:calc(12vh);transform:translateY(0) scale(1)}
+  .equipment:hover{transform:translateY(0) scale(1.03)}
+  .equipment-l{left:-16vw}
+  .equipment-r{right:-16vw}
+  .equipment-c{left:50%;right:auto;top:auto;bottom:3vh;margin:0;width:62vw;height:62vw;transform:translateX(-50%)}
+  /* labels move beneath the CTA, one per line */
+  .selector-label{position:static;transform:none;top:auto;display:flex;margin-top:6px}
+  .selector-label .label-name{font-size:22px}
+}
+
+/* D) hide scroll cue on short viewports */
+@media (max-height:660px){.scroll{display:none}}
+
+/* E) SHORT */
+@media (max-height:620px){
+  .copy{justify-content:center}
+  .title .ent-line{font-size:clamp(40px,12vh,70px)}
+}
+
+/* F) NARROW PHONE */
+@media (max-width:500px){
+  .navrow{padding:22px 20px}
+  .logo{font-size:22px}
+  .equipment{width:40vw;height:40vw}
+}
+
+/* ================================================================ REDUCED MOTION */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  .ent-line{transform:none !important}
+  .rule span{transform:scaleX(1) !important}
+  .gym-bg{opacity:1 !important}
+  .logo,.links a,.lede p,.primary-cta,.selector-label,.equipment,.scroll,.eyebrow .ent-line,.title .ent-line{opacity:1 !important;transform:none !important}
+  .eq.is-shown{transform:scale(var(--equipment-scale,1)) !important}
+  .equip-stage{opacity:1 !important;transform:none !important}
+}
+
+/* focus */
+:where(a,button,[tabindex]):focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="gym-bg"></div>
+  <div class="gym-shade"></div>
+
+  <div class="ui">
+
+    <header class="navbar">
+      <div class="navrow">
+        <a class="logo" href="/">WRE<b>CK</b></a>
+
+        <nav class="links" id="site-nav" aria-label="Primary">
+          <a class="enroll" href="/register" style="--i:4">Enter</a>
+        </nav>
+
+        <button class="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+    <div class="copy" id="copy">
+
+      <div class="equip-stage" id="equip-stage">
+        <img class="equip" data-p="strength" src="/equip/barbell.webp" alt="Strength equipment">
+        <img class="equip" data-p="cardio" src="/equip/treadmill.webp" alt="Cardio equipment">
+        <img class="equip" data-p="boxing" src="/equip/punching-bag.webp" alt="Boxing equipment">
+        <img class="equip" data-p="cycling" src="/equip/spin-bike.webp" alt="Cycling equipment">
+        <button class="eq-label el-left" id="nav-left" type="button" aria-label="Previous equipment"><span id="label-l">CYCLING</span></button>
+        <button class="eq-label el-right" id="nav-right" type="button" aria-label="Next equipment"><span id="label-r">CARDIO</span></button>
+      </div>
+
+
+      <div class="col eyebrow">
+        <span class="ent-mask"><span class="ent-line" id="eyebrow">TRAINING</span></span>
+      </div>
+
+      <h1 class="col title">
+        <span class="ent-mask"><span class="ent-line" id="title">STRENGTH</span></span>
+      </h1>
+
+      <div class="col rule"><span></span></div>
+
+      <p class="col lede" id="lede">Build strength, improve movement and push your performance with focused resistance training.</p>
+
+      <div class="col cta">
+
+        <a class="primary-cta" href="/register" id="primary-cta">EXPLORE STRENGTH</a>
+      </div>
+
+    </div>
+
+  </div>
+
+  <button class="scroll" type="button" aria-label="Explore gym">
+    <svg class="bob" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 5v14M6 13l6 6 6-6"/>
+    </svg>
+  </button>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ORDER = ['strength','cardio','boxing','cycling'];
+
+  var PROGRAMS = {
+    strength:{name:'STRENGTH',eyebrow:'TRAINING',equipment:'barbell',
+      description:'Build strength, improve movement and push your performance with focused resistance training.',
+      cta:'EXPLORE STRENGTH'},
+    cardio:{name:'CARDIO',eyebrow:'TRAINING',equipment:'treadmill',
+      description:'Improve endurance, conditioning and cardiovascular performance through focused cardio training.',
+      cta:'EXPLORE CARDIO'},
+    boxing:{name:'BOXING',eyebrow:'TRAINING',equipment:'punching-bag',
+      description:'Develop power, speed and conditioning through high-energy boxing and functional training.',
+      cta:'EXPLORE BOXING'},
+    cycling:{name:'CYCLING',eyebrow:'TRAINING',equipment:'spin-bike',
+      description:'Build endurance and intensity through immersive indoor cycling and performance sessions.',
+      cta:'EXPLORE CYCLING'}
+  };
+
+  var featured = 'strength';
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var copy = document.getElementById('copy');
+  var elEyebrow = document.getElementById('eyebrow');
+  var elTitle = document.getElementById('title');
+  var elLede = document.getElementById('lede');
+  var elCta = document.getElementById('primary-cta');
+  var elLabelL = document.getElementById('label-l');
+  var elLabelR = document.getElementById('label-r');
+  var stage = document.getElementById('equip-stage');
+  var navLeft = document.getElementById('nav-left');
+  var navRight = document.getElementById('nav-right');
+  var equips = {};
+  document.querySelectorAll('.equip').forEach(function(im){ equips[im.getAttribute('data-p')] = im; });
+
+  function equipOf(cat){ return PROGRAMS[cat].equipment; }
+
+  var turn = 0;
+  function mod(n){ return ((n % ORDER.length) + ORDER.length) % ORDER.length; }
+  function orbit(){
+    featured = ORDER[mod(turn)];
+    for(var i=0;i<ORDER.length;i++){
+      var im = equips[ORDER[i]];
+      var ang = 180 + (i - turn) * 90;      // continuous angle -> arcs on transition
+      var d = mod(i - turn);                 // 0 top, 1 right, 2 bottom, 3 left
+      var s = d===0 ? 1 : (d===2 ? 0.3 : 0.5);
+      im.style.transform = 'translate(-50%,-50%) rotate('+ang+'deg) translateY(var(--R)) rotate('+(-ang)+'deg) scale('+s+')';
+      im.style.opacity = d===2 ? '0' : (d===0 ? '1' : '0.95');
+      im.style.zIndex = d===0 ? '3' : (d===2 ? '1' : '2');
+      im.style.pointerEvents = (d===1 || d===3) ? 'auto' : 'none';
+      im.style.cursor = (d===1 || d===3) ? 'pointer' : 'default';
+      im.setAttribute('data-d', d);
+    }
+  }
+
+  function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+  var swapTimer = null;
+
+  function apply(next){
+    var p = PROGRAMS[next];
+    var idx = ORDER.indexOf(next);
+    var prev = ORDER[(idx - 1 + ORDER.length) % ORDER.length];
+    var nxt  = ORDER[(idx + 1) % ORDER.length];
+
+    elEyebrow.textContent = p.eyebrow;
+    elTitle.textContent = p.name;
+    elLede.textContent = p.description;
+    elCta.textContent = p.cta;
+
+    elLabelL.textContent = PROGRAMS[prev].name;
+    elLabelR.textContent = PROGRAMS[nxt].name;
+  }
+
+  function step(dir){
+    turn += dir;
+    orbit();
+    if(reduce){ apply(ORDER[mod(turn)]); return; }
+
+    copy.classList.add('switching');
+    clearTimeout(swapTimer);
+    swapTimer = setTimeout(function(){
+      apply(ORDER[mod(turn)]);
+      void copy.offsetWidth;
+      copy.classList.remove('switching');
+    }, 200);
+  }
+
+  // navigation — side equipment (peeking from the corners) + side labels
+  navLeft.addEventListener('click', function(){ step(-1); });
+  navRight.addEventListener('click', function(){ step(1); });
+  ORDER.forEach(function(prog){
+    equips[prog].addEventListener('click', function(){
+      var d = mod(ORDER.indexOf(prog) - turn);
+      if(d === 1) step(1); else if(d === 3) step(-1);
+    });
+  });
+
+  // initialise for the default (strength)
+  turn = 0;
+  orbit();
+  apply('strength');
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ stage.classList.add('ready'); }); });
+
+  /* -------------------------------------------------- mobile nav */
+  var burger = document.querySelector('.burger');
+  var nav = document.getElementById('site-nav');
+  var lastFocus = null;
+
+  function openNav(){
+    lastFocus = document.activeElement;
+    nav.classList.add('open');
+    burger.setAttribute('aria-expanded','true');
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('click', onOutside, true);
+  }
+  function closeNav(){
+    nav.classList.remove('open');
+    burger.setAttribute('aria-expanded','false');
+    document.removeEventListener('keydown', onKey);
+    document.removeEventListener('click', onOutside, true);
+    if(lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  function onKey(e){ if(e.key==='Escape') closeNav(); }
+  function onOutside(e){ if(!nav.contains(e.target) && !burger.contains(e.target)) closeNav(); }
+
+  burger.addEventListener('click', function(){
+    if(burger.getAttribute('aria-expanded')==='true') closeNav(); else openNav();
+  });
+  nav.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', closeNav); });
+
+  /* -------------------------------------------------- entrance clean-up */
+  var root = document.documentElement;
+  if(reduce){
+    root.classList.remove('anim','play');
+  } else {
+    window.setTimeout(function(){ root.classList.remove('anim','play'); }, 2150);
+  }
+})();
+</script>
+</body>
+</html>

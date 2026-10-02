@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * WRECK type system:
+ *   American Captain  → display (tall condensed caps, all headline furniture)
+ *   Gloucester MT     → serif accent (eyebrows, pull quotes, editorial labels)
+ *   Arial             → body text (system font, nothing to load)
+ * Both display faces degrade to a heavy Arial / Georgia if the file is missing,
+ * so the hierarchy still reads intentionally rather than breaking.
+ */
+@font-face {
+  font-family: "American Captain";
+  src: url("/fonts/american-captain.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gloucester MT";
+  src: url("/fonts/gloucester-mt-condensed.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --ease-wreck: cubic-bezier(0.22, 0.61, 0.36, 1);
+  color-scheme: dark;
+}
+
+* {
+  border-color: theme("colors.ink.line");
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: theme("colors.ink.DEFAULT");
+  color: theme("colors.bone.DEFAULT");
+  font-family: theme("fontFamily.sans");
+  /*
+   * Filmic grain + a single low, off-center tonal wash. This replaces the
+   * banned radial "orbs" / dot-grids with something that reads like film.
+   */
+  background-image:
+    radial-gradient(120% 80% at 12% -10%, rgba(255, 65, 3, 0.07), transparent 55%),
+    radial-gradient(90% 60% at 100% 108%, rgba(255, 65, 3, 0.05), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+}
+
+/* Display type: tight, uppercase where used as headline furniture */
+.font-display {
+  font-family: theme("fontFamily.display");
+  font-weight: 700;
+}
+
+/* The WRECK wordmark uses extreme negative tracking to feel stamped-in */
+.wordmark {
+  font-family: theme("fontFamily.display");
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
+/* Micro label — the small uppercase eyebrow used across the product */
+.eyebrow {
+  font-family: theme("fontFamily.sans");
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: theme("letterSpacing.label");
+  text-transform: uppercase;
+  color: theme("colors.bone.faint");
+}
+
+/* Serif editorial eyebrow — Gloucester MT, italic, used for accents/quotes */
+.eyebrow-serif {
+  font-family: theme("fontFamily.serif");
+  font-style: italic;
+  font-size: 1.0625rem;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  color: theme("colors.bone.dim");
+}
+
+/* Outlined display type — a hollow, stamped headline variant */
+.text-hollow {
+  color: transparent;
+  -webkit-text-stroke: 1.5px theme("colors.bone.faint");
+}
+.text-hollow-ember {
+  color: transparent;
+  -webkit-text-stroke: 1.5px theme("colors.ember.DEFAULT");
+}
+
+/* Fade the horizontal edges of a marquee/scroller so it bleeds cleanly */
+.edge-fade-x {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+/* 3D tilt context for interactive cards */
+.tilt-scene {
+  perspective: 900px;
+}
+
+/* Hairline divider */
+.rule {
+  height: 1px;
+  background: theme("colors.ink.line");
+}
+
+/* A crisp focus ring that matches the sharp geometry */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid theme("colors.ember.DEFAULT");
+  outline-offset: 2px;
+}
+
+/* Custom, restrained scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: theme("colors.ink.line");
+  border: 3px solid theme("colors.ink.DEFAULT");
+}
+::selection {
+  background: theme("colors.ember.DEFAULT");
+  color: theme("colors.ink.DEFAULT");
+}
+
+/* Skeleton shimmer used by loading states (this product ships real skeletons) */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: theme("colors.ink.raise");
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(237, 233, 225, 0.06),
+    transparent
+  );
+  animation: sweep 1.4s infinite;
+}
+
+@keyframes sweep {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Respect users who ask for less motion — required, not optional */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .skeleton::after {
+    animation: none;
+  }
+}
+
+/* Utility: hide scrollbar for horizontal scrollers while keeping function */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
