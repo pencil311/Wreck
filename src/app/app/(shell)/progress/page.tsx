@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getViewer, targetsFor } from "@/lib/data";
 import { Page, PageHeader } from "@/components/app/page-header";
 import { Card, ProgressBar, Tag } from "@/components/ui/primitives";
@@ -9,7 +10,8 @@ export const metadata: Metadata = { title: "Progress" };
 
 export default async function ProgressPage() {
   const { data } = await getViewer();
-  const config = data.config!;
+  if (!data.profile || !data.config) redirect("/app/onboarding");
+  const config = data.config;
   const targets = targetsFor(data)!;
 
   const now = Date.now();

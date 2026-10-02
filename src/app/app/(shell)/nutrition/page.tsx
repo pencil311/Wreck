@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getViewer, targetsFor } from "@/lib/data";
 import { MODE_META } from "@/domain/modes";
 import { Page, PageHeader } from "@/components/app/page-header";
@@ -10,8 +11,9 @@ export const metadata: Metadata = { title: "Nutrition" };
 
 export default async function NutritionPage() {
   const { data } = await getViewer();
-  const profile = data.profile!;
-  const config = data.config!;
+  if (!data.profile || !data.config) redirect("/app/onboarding");
+  const profile = data.profile;
+  const config = data.config;
   const targets = targetsFor(data)!;
   const today = todayISO();
   const todayFoods = data.foodLogs.filter((f) => f.date === today);

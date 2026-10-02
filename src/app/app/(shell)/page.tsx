@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getViewer, targetsFor } from "@/lib/data";
 import { MODE_META } from "@/domain/modes";
 import { sumDay } from "@/domain/nutrition/engine";
@@ -14,7 +15,10 @@ export const metadata: Metadata = { title: "Today" };
 
 export default async function DashboardPage() {
   const { user, data } = await getViewer();
-  const config = data.config!;
+  // The shell layout redirects profile-less users to onboarding, but layout and
+  // page RSCs render concurrently, so guard here too before dereferencing config.
+  if (!data.profile || !data.config) redirect("/app/onboarding");
+  const config = data.config;
   const meta = MODE_META[config.mode];
   const targets = targetsFor(data);
   const today = todayISO();
