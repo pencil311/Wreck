@@ -48,7 +48,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const model = process.env.COACH_MODEL || "gemini-2.5-flash";
+    const model = process.env.COACH_MODEL || "gemini-3.8-flash";
 
     const system = [
       "You are the WRECK coach. WRECK is a personalized fitness operating system.",
@@ -94,9 +94,9 @@ export async function POST(req: Request) {
             ]
           }
         ],
-        // Disable "thinking" so the token budget goes to the short reply, not
-        // hidden reasoning (relevant for the 2.5-flash default).
-        generationConfig: { maxOutputTokens: 400, temperature: 0.7, thinkingConfig: { thinkingBudget: 0 } }
+        // gemini-3.8-flash always "thinks" (~300-400 hidden tokens) and ignores
+        // thinkingBudget, so the cap must cover thinking plus the ~130-word reply.
+        generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
       })
     });
 
