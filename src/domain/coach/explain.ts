@@ -92,7 +92,7 @@ export function deterministicReply(
   }
 }
 
-function inferIntent(text: string): QuickActionKey | undefined {
+export function inferIntent(text: string): QuickActionKey | undefined {
   const t = text.toLowerCase();
   if (/tired|exhausted|no energy|drained/.test(t)) return "tired";
   if (/missed|skipped|couldn'?t train/.test(t)) return "missed";

@@ -18,13 +18,15 @@ export function CoachClient({ greeting }: { greeting: string }) {
   const listRef = useRef<HTMLDivElement>(null);
 
   async function send(payload: { intent?: QuickActionKey; text?: string }, label: string) {
+    // Prior turns for multi-turn conversation (skip the opening greeting).
+    const history = messages.slice(1).slice(-10).map((m) => ({ role: m.role, text: m.text }));
     setMessages((m) => [...m, { role: "user", text: label }]);
     setBusy(true);
     try {
       const res = await fetch("/api/coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, history })
       });
       const data = await res.json();
       setMessages((m) => [...m, { role: "coach", text: data.reply ?? "Something went wrong.", source: data.source }]);
@@ -82,7 +84,7 @@ export function CoachClient({ greeting }: { greeting: string }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submitText()}
-          placeholder="Ask about today, your targets, or a change"
+          placeholder="Ask me anything about your training"
           className="flex-1 rounded-sm border border-ink-line bg-ink px-3.5 py-3 text-sm text-bone placeholder:text-bone-faint focus:border-ember/60"
         />
         <Button onClick={submitText} disabled={busy || !input.trim()} aria-label="Send">

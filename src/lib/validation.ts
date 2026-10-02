@@ -109,7 +109,13 @@ export const coachSchema = z.object({
   intent: z
     .enum(["tired", "missed", "change_meal", "explain_workout", "what_eat", "why_changed"])
     .optional(),
-  text: z.string().max(1000).optional()
+  text: z.string().max(1000).optional(),
+  // Prior turns for multi-turn conversation (most recent last). Capped so the
+  // request stays small; the route trims further.
+  history: z
+    .array(z.object({ role: z.enum(["user", "coach"]), text: z.string().max(2000) }))
+    .max(20)
+    .optional()
 });
 
 /** A photo id as written by the scan endpoint. Validated before any filesystem
