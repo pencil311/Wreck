@@ -13,10 +13,10 @@ import { coachSchema } from "@/lib/validation";
  * AI coach endpoint.
  *
  * The deterministic explanation engine always produces the answer's factual
- * content from the user's real profile/program/logs. When ANTHROPIC_API_KEY is
- * present the answer is rephrased conversationally by Claude, constrained by a
- * strict system prompt: it may only explain WRECK's decisions and the facts we
- * pass in, never invent a plan or fabricate database numbers. With no key the
+ * content from the user's real profile/program/logs. When GEMINI_API_KEY is
+ * present the answer is rephrased conversationally by Google Gemini, constrained
+ * by a strict system prompt: it may only explain WRECK's decisions and the facts
+ * we pass in, never invent a plan or fabricate database numbers. With no key the
  * deterministic reply is returned directly, so the coach always works.
  */
 export async function POST(req: Request) {
@@ -42,15 +42,13 @@ export async function POST(req: Request) {
     ctx
   );
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ reply: grounded, source: "deterministic" });
   }
 
   try {
-    const { default: Anthropic } = await import("@anthropic-ai/sdk");
-    const client = new Anthropic({ apiKey });
-    const model = process.env.COACH_MODEL || "claude-opus-5";
+    const model = process.env.COACH_MODEL || "gemini-2.5-flash";
 
     const system = [
       "You are the WRECK coach. WRECK is a personalized fitness operating system.",
@@ -80,26 +78,41 @@ export async function POST(req: Request) {
       0
     );
 
-    const response = await client.messages.create({
-      model,
-      max_tokens: 400,
-      system,
-      messages: [
-        {
-          role: "user",
-          content: `CONTEXT: ${contextBlock}\n\nGROUNDED_ANSWER: ${grounded}\n\nUSER MESSAGE: ${userText}`
-        }
-      ]
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: `CONTEXT: ${contextBlock}\n\nGROUNDED_ANSWER: ${grounded}\n\nUSER MESSAGE: ${userText}`
+              }
+            ]
+          }
+        ],
+        // Disable "thinking" so the token budget goes to the short reply, not
+        // hidden reasoning (relevant for the 2.5-flash default).
+        generationConfig: { maxOutputTokens: 400, temperature: 0.7, thinkingConfig: { thinkingBudget: 0 } }
+      })
     });
 
-    const text = response.content
-      .map((b) => (b.type === "text" ? b.text : ""))
+    if (!res.ok) throw new Error(`gemini ${res.status}`);
+    const json = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+    const text = (json.candidates?.[0]?.content?.parts ?? [])
+      .map((p) => p.text ?? "")
       .join("")
       .trim();
 
     return NextResponse.json({ reply: text || grounded, source: text ? "ai" : "deterministic" });
-  } catch {
+  } catch (e) {
     // Any AI failure falls back to the grounded deterministic reply.
+    console.error("coach gemini call failed:", e);
     return NextResponse.json({ reply: grounded, source: "deterministic" });
   }
 }
