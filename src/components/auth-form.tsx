@@ -1,11 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { loginAction, registerAction } from "@/app/actions";
 import { Button, FieldError, Input, Label } from "@/components/ui/primitives";
 import { Wordmark } from "@/components/wordmark";
+
+const OAUTH_ERRORS: Record<string, string> = {
+  google: "Google sign-in didn't complete. Please try again.",
+  google_unconfigured: "Google sign-in isn't set up yet."
+};
 
 /**
  * Shared auth form for sign-in and registration. Real validation, real error
@@ -14,8 +19,11 @@ import { Wordmark } from "@/components/wordmark";
  */
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
+  const oauthError = useSearchParams().get("error");
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    oauthError ? OAUTH_ERRORS[oauthError] ?? "Sign-in failed. Please try again." : null
+  );
   const [fields, setFields] = useState<Record<string, string>>({});
 
   async function onSubmit(formData: FormData) {
@@ -57,7 +65,21 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           : "Sign in to pick up where you left off."}
       </p>
 
-      <form action={onSubmit} className="mt-8 space-y-5" noValidate>
+      <a
+        href="/api/auth/google"
+        className="mt-8 flex w-full items-center justify-center gap-3 rounded-sm border border-ink-line bg-ink-raise px-4 py-3 text-sm font-bold text-bone transition-colors hover:border-bone/30"
+      >
+        <GoogleG />
+        Continue with Google
+      </a>
+
+      <div className="my-6 flex items-center gap-3 text-xs text-bone-faint">
+        <span className="h-px flex-1 bg-ink-line" />
+        or
+        <span className="h-px flex-1 bg-ink-line" />
+      </div>
+
+      <form action={onSubmit} className="space-y-5" noValidate>
         {mode === "register" && (
           <div>
             <Label htmlFor="displayName">What should we call you</Label>
@@ -123,5 +145,17 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         .
       </p>
     </div>
+  );
+}
+
+/** Google's four-colour "G" mark (official brand colours). */
+function GoogleG() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.6 2.4 30.1 0 24 0 14.6 0 6.4 5.4 2.6 13.2l7.9 6.1C12.4 13.3 17.7 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16z" />
+      <path fill="#FBBC05" d="M10.5 28.3c-.5-1.4-.8-2.9-.8-4.3s.3-2.9.8-4.3l-7.9-6.1C1 16.7 0 20.2 0 24s1 7.3 2.6 10.4l7.9-6.1z" />
+      <path fill="#34A853" d="M24 48c6.1 0 11.3-2 15-5.5l-7.1-5.5c-2 1.3-4.6 2.1-7.9 2.1-6.3 0-11.6-3.8-13.5-9.3l-7.9 6.1C6.4 42.6 14.6 48 24 48z" />
+    </svg>
   );
 }

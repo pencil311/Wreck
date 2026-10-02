@@ -13,6 +13,28 @@ import { getStore } from "@/lib/store";
 const COOKIE = "wreck_session";
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
+/** Cookie config shared by createSession and route handlers that set it directly. */
+export const SESSION_COOKIE = COOKIE;
+export const SESSION_MAX_AGE = MAX_AGE;
+export function sessionCookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: MAX_AGE
+  };
+}
+
+/** Sign a session JWT for a user id. Pair with sessionCookieOptions() to set it. */
+export async function signSession(userId: string): Promise<string> {
+  return new SignJWT({ sub: userId })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${MAX_AGE}s`)
+    .sign(secret());
+}
+
 function secret(): Uint8Array {
   const s = process.env.AUTH_SECRET;
   if (!s) {
@@ -25,19 +47,8 @@ function secret(): Uint8Array {
 }
 
 export async function createSession(userId: string): Promise<void> {
-  const token = await new SignJWT({ sub: userId })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(`${MAX_AGE}s`)
-    .sign(secret());
-
-  cookies().set(COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: MAX_AGE
-  });
+  const token = await signSession(userId);
+  cookies().set(COOKIE, token, sessionCookieOptions());
 }
 
 export function destroySession(): void {

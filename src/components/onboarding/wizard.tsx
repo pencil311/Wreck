@@ -102,7 +102,15 @@ type StepKey =
 
 export function OnboardingWizard({ initial }: { initial: Draft & { step?: number } }) {
   const router = useRouter();
-  const [draft, setDraft] = useState<Draft>(stripStep(initial));
+  // Seed slider-backed fields with their displayed defaults so "Continue" is
+  // enabled without the user having to drag a slider to commit the value it
+  // already shows. A resumed draft (initial) overrides these.
+  const [draft, setDraft] = useState<Draft>(() => ({
+    daysPerWeek: 3,
+    sessionMinutes: 45,
+    sleepHours: 7,
+    ...stripStep(initial)
+  }));
   const [index, setIndex] = useState<number>(clampStep(initial.step ?? 0));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
